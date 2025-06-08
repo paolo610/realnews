@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Feed</title>
+    <link rel="stylesheet" href="static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>News Feed</h1>
+        </header>
+
+        <main id="posts">
+            <!-- Posts will be loaded here -->
+        </main>
+
+        <!-- Floating Action Button -->
+        <button class="fab" onclick="openPostModal()">
+            <i class="fas fa-plus"></i>
+        </button>
+
+        <!-- Modal -->
+        <div id="postModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closePostModal()">&times;</span>
+                <h2>Create New Post</h2>
+                <div id="post-form" class="post-form">
+                    <input type="text" id="username" placeholder="Username" required>
+                    <input type="password" id="key" placeholder="Security Key" required>
+                    <textarea id="content" placeholder="What's on your mind?" required></textarea>
+                    <div class="image-upload">
+                        <label for="image">Add Image (optional)</label>
+                        <input type="file" id="image" accept="image/*">
+                    </div>
+                    <button onclick="submitPost()">Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load posts from localStorage
+        function loadPosts() {
+            const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+            const postsContainer = document.getElementById('posts');
+            postsContainer.innerHTML = '';
+            
+            posts.reverse().forEach(post => {
+                const postElement = document.createElement('article');
+                postElement.className = 'post';
+                postElement.innerHTML = `
+                    <div class="post-header">
+                        <span class="username">${post.username}</span>
+                        <span class="timestamp">${post.timestamp}</span>
+                    </div>
+                    <div class="post-content">${post.content}</div>
+                    ${post.image ? `<div class="post-image"><img src="${post.image}" alt="Post image"></div>` : ''}
+                `;
+                postsContainer.appendChild(postElement);
+            });
+        }
+
+        function openPostModal() {
+            document.getElementById('postModal').style.display = 'block';
+        }
+
+        function closePostModal() {
+            document.getElementById('postModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('postModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        async function submitPost() {
+            const username = document.getElementById('username').value;
+            const key = document.getElementById('key').value;
+            const content = document.getElementById('content').value;
+            const imageFile = document.getElementById('image').files[0];
+
+            if (!username || !key || !content) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            // In a real application, you would verify the key with a server
+            // For this demo, we'll just check if the key matches a hardcoded value
+            if (key !== 'paolof') {
+                alert('Invalid credentials');
+                return;
+            }
+
+            const post = {
+                username,
+                content,
+                timestamp: new Date().toLocaleString(),
+                image: imageFile ? URL.createObjectURL(imageFile) : null
+            };
+
+            // Save to localStorage
+            const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+            posts.push(post);
+            localStorage.setItem('posts', JSON.stringify(posts));
+
+            // Clear form
+            document.getElementById('username').value = '';
+            document.getElementById('key').value = '';
+            document.getElementById('content').value = '';
+            document.getElementById('image').value = '';
+
+            // Close modal and refresh posts
+            closePostModal();
+            loadPosts();
+        }
+
+        // Load posts when page loads
+        loadPosts();
+    </script>
+</body>
+</html> 
