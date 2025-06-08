@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Feed</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>News Feed</h1>
+        </header>
+
+        <main id="posts">
+            {% for post in posts|reverse %}
+            <article class="post">
+                <div class="post-header">
+                    <span class="username">{{ post[1] }}</span>
+                    <span class="timestamp">{{ post[0] }}</span>
+                </div>
+                <div class="post-content">{{ post[2] }}</div>
+                {% if post[3] %}
+                <div class="post-image">
+                    <img src="{{ url_for('static', filename=post[3]) }}" alt="Post image">
+                </div>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </main>
+
+        <!-- Floating Action Button -->
+        <button class="fab" onclick="openPostModal()">
+            <i class="fas fa-plus"></i>
+        </button>
+
+        <!-- Modal -->
+        <div id="postModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closePostModal()">&times;</span>
+                <h2>Create New Post</h2>
+                <div id="post-form" class="post-form">
+                    <input type="text" id="username" placeholder="Username" required>
+                    <input type="password" id="key" placeholder="Security Key" required>
+                    <textarea id="content" placeholder="What's on your mind?" required></textarea>
+                    <div class="image-upload">
+                        <label for="image">Add Image (optional)</label>
+                        <input type="file" id="image" accept="image/*">
+                    </div>
+                    <button onclick="submitPost()">Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openPostModal() {
+            document.getElementById('postModal').style.display = 'block';
+        }
+
+        function closePostModal() {
+            document.getElementById('postModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('postModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        async function submitPost() {
+            const username = document.getElementById('username').value;
+            const key = document.getElementById('key').value;
+            const content = document.getElementById('content').value;
+            const imageFile = document.getElementById('image').files[0];
+
+            if (!username || !key || !content) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('key', key);
+            formData.append('content', content);
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
+            try {
+                const response = await fetch('/post', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert(data.error || 'Error posting');
+                }
+            } catch (error) {
+                alert('Error posting');
+            }
+        }
+    </script>
+</body>
+</html> 
